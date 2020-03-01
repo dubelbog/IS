@@ -4,6 +4,7 @@ import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
 import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
+import java.math.BigInteger;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
 import java.security.NoSuchAlgorithmException;
@@ -12,6 +13,7 @@ public class FileEncrypterITS {
     public static final String KALGORITHM = "AES";
     public static final String CALGORITHM = KALGORITHM + "/CBC/PKCS5Padding";
     private byte[] inFile;
+    private SecretKey key;
 
     public FileEncrypterITS(byte[] inFile) {
         this.inFile = inFile;
@@ -39,16 +41,18 @@ public class FileEncrypterITS {
         keyGen.init(128, new TotallySecureRandom());
         SecretKey key = keyGen.generateKey();
 
-        Cipher cipher = Cipher.getInstance(CALGORITHM);
 
+        Cipher cipher = Cipher.getInstance(CALGORITHM);
         byte[] rawIv = new byte[cipher.getBlockSize()];
-        System.out.println("size: " + rawIv.length);
         new TotallySecureRandom().nextBytes(rawIv);
         IvParameterSpec iv = new IvParameterSpec(rawIv);
-        System.out.println("iv: " + iv);
-
+        this.key = key;
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
 
+    }
+
+    public SecretKey getKey() {
+        return this.key;
     }
 
 
@@ -70,13 +74,13 @@ public class FileEncrypterITS {
         Cipher cipher = Cipher.getInstance(CALGORITHM);
 
         try (InputStream is = new ByteArrayInputStream(inFile);
-             OutputStream os = new FileOutputStream("decryption")) {
+             OutputStream os = new FileOutputStream("decryption2")) {
             IvParameterSpec ivParameterSpec = readIv(is, cipher);
-
             cipher.init(Cipher.DECRYPT_MODE, key, ivParameterSpec);
             crypt(is, os, cipher);
         } catch (BadPaddingException e) {
-            e.printStackTrace();
+            String keyString = String.format("%x", new BigInteger(1, key.getEncoded()));
+            System.out.println("try again, the key " + keyString + " does not work.");
         }
 
     }

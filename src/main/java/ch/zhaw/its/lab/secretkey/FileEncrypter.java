@@ -2,7 +2,6 @@ package ch.zhaw.its.lab.secretkey;
 
 import javax.crypto.*;
 import javax.crypto.spec.IvParameterSpec;
-import javax.crypto.spec.SecretKeySpec;
 import java.io.*;
 import java.security.InvalidAlgorithmParameterException;
 import java.security.InvalidKeyException;
@@ -35,7 +34,7 @@ public class FileEncrypter {
         os.write(cipher.doFinal());
     }
 
-    public void encrypt() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
+    public SecretKey encrypt() throws IOException, NoSuchPaddingException, NoSuchAlgorithmException, InvalidKeyException,
             InvalidAlgorithmParameterException, BadPaddingException, IllegalBlockSizeException {
         KeyGenerator keyGen = KeyGenerator.getInstance(KALGORITHM);
         keyGen.init(128, new TotallySecureRandom());
@@ -46,7 +45,6 @@ public class FileEncrypter {
         byte[] rawIv = new byte[cipher.getBlockSize()];
         new TotallySecureRandom().nextBytes(rawIv);
         IvParameterSpec iv = new IvParameterSpec(rawIv);
-
         cipher.init(Cipher.ENCRYPT_MODE, key, iv);
 
         try (InputStream is = new FileInputStream(inFile);
@@ -54,6 +52,8 @@ public class FileEncrypter {
             writeIv(os, iv);
             crypt(is, os, cipher);
         }
+
+        return key;
     }
 
     public IvParameterSpec readIv(InputStream is, Cipher cipher) throws IOException {
@@ -71,9 +71,9 @@ public class FileEncrypter {
         os.write(iv.getIV());
     }
 
-    public void decrypt(byte[] rawKey) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException,
+    public void decrypt(SecretKey key) throws NoSuchPaddingException, NoSuchAlgorithmException, IOException,
             BadPaddingException, IllegalBlockSizeException, InvalidAlgorithmParameterException, InvalidKeyException {
-        SecretKey key = new SecretKeySpec(rawKey, 0, rawKey.length, KALGORITHM);
+      //  SecretKey key = new SecretKeySpec(rawKey, 0, rawKey.length, KALGORITHM);
         Cipher cipher = Cipher.getInstance(CALGORITHM);
 
         try (InputStream is = new FileInputStream(inFile);

@@ -46,7 +46,6 @@ public class Ransom {
             assert mode == Mode.PAY_RANSOM;
             byte[] rawKey = decodeKey(args[3]);
             System.out.println("Trying with key " + DatatypeConverter.printHexBinary(rawKey));
-            e.decrypt(rawKey);
         }
     }
 
